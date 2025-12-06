@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { EventService } from '../services/EventService';
 import { ApiKeyService } from '../services/ApiKeyService';
+import { AnalyticsService } from '../services/AnalyticsService';
 import pool from '../config/database'; // Direct access for simpler provider list
 
 export class WebController {
@@ -62,5 +63,20 @@ export class WebController {
       selectedProviderId,
       keys
     });
+  }
+
+  static async analytics(req: Request, res: Response) {
+    try {
+      const days = parseInt(req.query.days as string) || 30;
+      const stats = await AnalyticsService.getAnalytics(days);
+
+      res.render('analytics', {
+        selectedDays: days,
+        ...stats
+      });
+    } catch (error) {
+      console.error('Analytics error:', error);
+      res.status(500).send('Error loading analytics');
+    }
   }
 }

@@ -1,0 +1,142 @@
+<%- include('partials/header') %>
+
+<div class="flex justify-between items-center mb-6">
+  <h1 class="text-3xl font-bold">Analytics & Statistics</h1>
+  
+  <!-- Period Selector -->
+  <form method="GET" action="/analytics" class="flex items-center space-x-2">
+    <label class="label-text">Period:</label>
+    <select name="days" onchange="this.form.submit()" class="select select-bordered select-sm">
+      <option value="1" <%= selectedDays == 1 ? 'selected' : '' %>>Last 24 hours</option>
+      <option value="7" <%= selectedDays == 7 ? 'selected' : '' %>>Last 7 days</option>
+      <option value="30" <%= selectedDays == 30 ? 'selected' : '' %>>Last 30 days</option>
+      <option value="90" <%= selectedDays == 90 ? 'selected' : '' %>>Last 90 days</option>
+    </select>
+  </form>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+  <!-- Total Webhooks -->
+  <div class="stats shadow">
+    <div class="stat">
+      <div class="stat-figure text-primary">
+        <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      </div>
+      <div class="stat-title">Total Webhooks</div>
+      <div class="stat-value text-primary"><%= totalWebhooks %></div>
+    </div>
+  </div>
+
+  <!-- Last 24h Activity -->
+  <div class="stats shadow">
+    <div class="stat">
+      <div class="stat-figure text-success">
+        <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <div class="stat-title">Last 24 Hours</div>
+      <div class="stat-value text-success"><%= last24Hours %></div>
+    </div>
+  </div>
+
+  <!-- Success Rate -->
+  <div class="stats shadow">
+    <div class="stat">
+      <div class="stat-figure text-info">
+        <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <div class="stat-title">Success Rate</div>
+      <div class="stat-value text-info"><%= successRate %>%</div>
+    </div>
+  </div>
+
+  <!-- Avg Response Time -->
+  <div class="stats shadow">
+    <div class="stat">
+      <div class="stat-figure text-secondary">
+        <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      </div>
+      <div class="stat-title">Avg Response</div>
+      <div class="stat-value text-secondary"><%= avgResponseTime %>ms</div>
+    </div>
+  </div>
+</div>
+
+<!-- Charts Row -->
+<div class="grid grid-cols-1 gap-5 lg:grid-cols-2 mb-8">
+  <!-- Webhooks by Provider -->
+  <div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+      <h2 class="card-title">Webhooks by Provider</h2>
+      <div class="space-y-3">
+        <% webhooksByProvider.forEach(item => { %>
+          <div>
+            <div class="flex justify-between text-sm mb-1">
+              <span class="font-medium"><%= item.name %></span>
+              <span><%= item.count %> (<%= totalWebhooks > 0 ? ((item.count / totalWebhooks) * 100).toFixed(1) : 0 %>%)</span>
+            </div>
+            <progress class="progress progress-primary" value="<%= item.count %>" max="<%= totalWebhooks || 1 %>"></progress>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Event Types -->
+  <div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+      <h2 class="card-title">Top Event Types</h2>
+      <div class="space-y-2">
+        <% topEventTypes.forEach(item => { %>
+          <div class="flex justify-between items-center py-2 border-b border-base-300">
+            <span class="text-sm font-medium"><%= item.event_type %></span>
+            <div class="badge badge-primary"><%= item.count %></div>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Provider Stats Table -->
+<div class="card bg-base-100 shadow-xl">
+  <div class="card-body">
+    <h2 class="card-title">Provider Statistics</h2>
+    <div class="overflow-x-auto">
+      <table class="table w-full">
+        <thead>
+          <tr>
+            <th>Provider</th>
+            <th>Total Events</th>
+            <th>Last Event</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% providerStats.forEach(provider => { %>
+            <tr>
+              <td><div class="font-medium"><%= provider.name %></div></td>
+              <td><%= provider.totalEvents %></td>
+              <td>
+                <% if (provider.lastEvent) { %>
+                  <%= new Date(provider.lastEvent).toLocaleString() %>
+                <% } else { %>
+                  Never
+                <% } %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

@@ -2,15 +2,13 @@ import { Request, Response, NextFunction } from 'express';
 import { ApiKeyService } from '../services/ApiKeyService';
 import pool from '../config/database'; // To get provider info if needed
 
-// Extend Request to include provider info
-declare global {
-  namespace Express {
-    interface Request {
-      provider?: {
-        id: string;
-        name: string;
-      };
-    }
+// Extend Request to include provider info using module augmentation
+declare module 'express-serve-static-core' {
+  interface Request {
+    provider?: {
+      id: string;
+      name: string;
+    };
   }
 }
 

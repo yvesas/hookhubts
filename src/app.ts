@@ -41,6 +41,7 @@ app.use('/api', apiRoutes);
 // Web Routes
 app.get('/', WebController.index);
 app.get('/keys', WebController.keys);
+app.get('/analytics', WebController.analytics);
 
 
 export default app;
