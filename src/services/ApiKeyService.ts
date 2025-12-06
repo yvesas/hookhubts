@@ -53,14 +53,22 @@ export class ApiKeyService {
     }
   }
 
-  static async listKeys(providerId: string) {
-      const query = `
-        SELECT id, key_prefix, name, created_at, is_active, revoked_at 
-        FROM api_keys
-        WHERE provider_id = $1
-        ORDER BY created_at DESC
+  static async listKeys(providerId?: string) {
+      let query = `
+        SELECT k.id, k.key_prefix, k.name, k.created_at, k.is_active, k.revoked_at, p.name as provider_name
+        FROM api_keys k
+        JOIN providers p ON k.provider_id = p.id
       `;
-      const result = await pool.query(query, [providerId]);
+      
+      const values: string[] = [];
+      if (providerId) {
+          query += ` WHERE k.provider_id = $1`;
+          values.push(providerId);
+      }
+      
+      query += ` ORDER BY k.created_at DESC`;
+
+      const result = await pool.query(query, values);
       return result.rows.map(row => ({
           ...row,
           token: `${row.key_prefix}_...` // Masked

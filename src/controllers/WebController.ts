@@ -47,9 +47,7 @@ export class WebController {
     const selectedProviderId = req.query.providerId as string;
     
     let keys: Array<{ id: string; provider_name: string; key_prefix: string; name: string; is_active: boolean; created_at: Date }> = [];
-    if (selectedProviderId) {
-      keys = await ApiKeyService.listKeys(selectedProviderId);
-    }
+    keys = await ApiKeyService.listKeys(selectedProviderId);
 
     res.render('keys', { 
       currentPage: 'keys',
