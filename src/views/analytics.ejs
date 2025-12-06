@@ -107,7 +107,7 @@
             <span class="text-gray-600 dark:text-gray-400"><%= item.count %> (<%= totalWebhooks > 0 ? ((item.count / totalWebhooks) * 100).toFixed(1) : 0 %>%)</span>
           </div>
           <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-            <div class="bg-indigo-600 dark:bg-indigo-400 h-2 rounded-full" style="width: <%= totalWebhooks > 0 ? (item.count / totalWebhooks * 100) : 0 %>%"></div>
+            <div class="bg-indigo-600 dark:bg-indigo-400 h-2 rounded-full" style="width: <%= totalWebhooks > 0 ? (item.count / totalWebhooks * 100).toFixed(1) : 0 %>%"></div>
           </div>
         </div>
       <% }) %>
