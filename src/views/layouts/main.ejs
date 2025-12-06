@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HookHubTS</title>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.10.1/dist/full.min.css" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-base-200 min-h-screen flex flex-col">
+  <div class="navbar bg-base-100 shadow-sm">
+    <div class="flex-1">
+      <a class="btn btn-ghost text-xl" href="/">HookHubTS</a>
+    </div>
+    <div class="flex-none">
+      <ul class="menu menu-horizontal px-1">
+        <li><a href="/">Events</a></li>
+        <li><a href="/keys">API Keys</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <main class="container mx-auto p-4 flex-grow">
+    <%- body %>
+  </main>
+
+  <footer class="footer footer-center p-4 bg-base-300 text-base-content">
+    <aside>
+      <p>Copyright © 2025 - HookHubTS</p>
+    </aside>
+  </footer>
+</body>
+</html>

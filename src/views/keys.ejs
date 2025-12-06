@@ -1,0 +1,238 @@
+<%- include('partials/header') %>
+
+<h1 class="text-3xl font-bold mb-6">API Key Management</h1>
+
+<!-- ... existing content ... -->
+<div class="card bg-base-100 shadow-xl mb-6">
+  <div class="card-body">
+    <h2 class="card-title">Select Provider</h2>
+    <form class="flex gap-4 items-end" method="GET" action="/keys">
+      <div class="form-control w-full max-w-xs">
+        <label class="label"><span class="label-text">Provider</span></label>
+        <select name="providerId" class="select select-bordered" onchange="this.form.submit()">
+          <option value="" disabled <%= !selectedProviderId ? 'selected' : '' %>>Select a provider</option>
+          <% providers.forEach(p => { %>
+            <option value="<%= p.id %>" <%= selectedProviderId === p.id ? 'selected' : '' %>><%= p.name %></option>
+          <% }) %>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary">Load Keys</button>
+    </form>
+  </div>
+</div>
+
+<% if (selectedProviderId) { %>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- List Keys -->
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <h2 class="card-title">Existing Keys</h2>
+        <div class="overflow-x-auto">
+          <table class="table w-full">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Prefix</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% keys.forEach(key => { %>
+                <tr class="<%= !key.is_active ? 'opacity-50' : '' %>">
+                  <td><%= key.name || 'Set Name' %></td>
+                  <td><%= key.key_prefix %></td>
+                  <td>
+                    <% if (key.is_active) { %>
+                      <div class="badge badge-success">Active</div>
+                    <% } else { %>
+                      <div class="badge badge-error">Revoked</div>
+                    <% } %>
+                  </td>
+                  <td><%= new Date(key.created_at).toLocaleDateString() %></td>
+                  <td>
+                    <% if (key.is_active) { %>
+                      <button onclick="revokeKey('<%= key.id %>')" class="btn btn-xs btn-error">Revoke</button>
+                    <% } %>
+                  </td>
+                </tr>
+              <% }) %>
+              <% if (keys.length === 0) { %>
+                <tr><td colspan="5" class="text-center">No keys found</td></tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create Key -->
+    <div class="card bg-base-100 shadow-xl h-fit">
+      <div class="card-body">
+        <h2 class="card-title">Create New Key</h2>
+        <div id="newKeyAlert" class="alert alert-success shadow-lg hidden">
+          <div>
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <div>
+              <h3 class="font-bold">Key Created!</h3>
+              <div class="text-xs">Save this secret: <span id="newKeySecret" class="font-mono bg-base-200 p-1"></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-control">
+          <label class="label"><span class="label-text">Key Name</span></label>
+          <input type="text" id="newKeyName" class="input input-bordered" placeholder="e.g. Production Server" />
+        </div>
+        <div class="card-actions justify-end mt-4">
+          <button onclick="createKey()" class="btn btn-primary">Generate Key</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function revokeKey(id) {
+      if(!confirm('Are you sure?')) return;
+      await fetch('/api/keys/' + id, { method: 'DELETE' });
+      window.location.reload();
+    }
+
+    async function createKey() {
+      const name = document.getElementById('newKeyName').value;
+      const providerId = '<%= selectedProviderId %>';
+      const res = await fetch('/api/keys', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ providerId, name })
+      });
+      const data = await res.json();
+      if(res.ok) {
+        document.getElementById('newKeySecret').innerText = data.secret;
+        document.getElementById('newKeyAlert').classList.remove('hidden');
+        // Optionally reload after delay
+      } else {
+        alert('Error: ' + data.error);
+      }
+    }
+  </script>
+<% } %>
+
+<%- include('partials/footer') %>
+
+<div class="card bg-base-100 shadow-xl mb-6">
+  <div class="card-body">
+    <h2 class="card-title">Select Provider</h2>
+    <form class="flex gap-4 items-end" method="GET" action="/keys">
+      <div class="form-control w-full max-w-xs">
+        <label class="label"><span class="label-text">Provider</span></label>
+        <select name="providerId" class="select select-bordered" onchange="this.form.submit()">
+          <option value="" disabled <%= !selectedProviderId ? 'selected' : '' %>>Select a provider</option>
+          <% providers.forEach(p => { %>
+            <option value="<%= p.id %>" <%= selectedProviderId === p.id ? 'selected' : '' %>><%= p.name %></option>
+          <% }) %>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary">Load Keys</button>
+    </form>
+  </div>
+</div>
+
+<% if (selectedProviderId) { %>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- List Keys -->
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <h2 class="card-title">Existing Keys</h2>
+        <div class="overflow-x-auto">
+          <table class="table w-full">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Prefix</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% keys.forEach(key => { %>
+                <tr class="<%= !key.is_active ? 'opacity-50' : '' %>">
+                  <td><%= key.name || 'Set Name' %></td>
+                  <td><%= key.key_prefix %></td>
+                  <td>
+                    <% if (key.is_active) { %>
+                      <div class="badge badge-success">Active</div>
+                    <% } else { %>
+                      <div class="badge badge-error">Revoked</div>
+                    <% } %>
+                  </td>
+                  <td><%= new Date(key.created_at).toLocaleDateString() %></td>
+                  <td>
+                    <% if (key.is_active) { %>
+                      <button onclick="revokeKey('<%= key.id %>')" class="btn btn-xs btn-error">Revoke</button>
+                    <% } %>
+                  </td>
+                </tr>
+              <% }) %>
+              <% if (keys.length === 0) { %>
+                <tr><td colspan="5" class="text-center">No keys found</td></tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create Key -->
+    <div class="card bg-base-100 shadow-xl h-fit">
+      <div class="card-body">
+        <h2 class="card-title">Create New Key</h2>
+        <div id="newKeyAlert" class="alert alert-success shadow-lg hidden">
+          <div>
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <div>
+              <h3 class="font-bold">Key Created!</h3>
+              <div class="text-xs">Save this secret: <span id="newKeySecret" class="font-mono bg-base-200 p-1"></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-control">
+          <label class="label"><span class="label-text">Key Name</span></label>
+          <input type="text" id="newKeyName" class="input input-bordered" placeholder="e.g. Production Server" />
+        </div>
+        <div class="card-actions justify-end mt-4">
+          <button onclick="createKey()" class="btn btn-primary">Generate Key</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function revokeKey(id) {
+      if(!confirm('Are you sure?')) return;
+      await fetch('/api/keys/' + id, { method: 'DELETE' });
+      window.location.reload();
+    }
+
+    async function createKey() {
+      const name = document.getElementById('newKeyName').value;
+      const providerId = '<%= selectedProviderId %>';
+      const res = await fetch('/api/keys', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ providerId, name })
+      });
+      const data = await res.json();
+      if(res.ok) {
+        document.getElementById('newKeySecret').innerText = data.secret;
+        document.getElementById('newKeyAlert').classList.remove('hidden');
+        // Optionally reload after delay
+      } else {
+        alert('Error: ' + data.error);
+      }
+    }
+  </script>
+<% } %>
