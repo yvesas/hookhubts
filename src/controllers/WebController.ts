@@ -12,10 +12,10 @@ export class WebController {
       const offset = (page - 1) * limit;
 
       const filters = {
-        providerId: req.query.providerId,
-        eventType: req.query.eventType,
-        startDate: req.query.startDate,
-        endDate: req.query.endDate
+        providerId: req.query.providerId as string | undefined,
+        eventType: req.query.eventType as string | undefined,
+        startDate: req.query.startDate as string | undefined,
+        endDate: req.query.endDate as string | undefined
       };
 
       const result = await EventService.getEvents(filters, { limit, offset });
@@ -24,6 +24,7 @@ export class WebController {
       const providersRes = await pool.query('SELECT id, name FROM providers ORDER BY name');
 
       res.render('index', { 
+        currentPage: 'events',
         events: result.events, 
         pagination: { 
           page: result.page, 
@@ -32,15 +33,7 @@ export class WebController {
           totalPages: Math.ceil(result.total / limit)
         },
         providers: providersRes.rows,
-        filters,
-        body: '' // EJS layout helper usually handles body inclusion differently, but for manual layout valid
-        // Actually typically using express-ejs-layouts or just include header/footer in every file.
-        // We will use include header/footer approach or express-ejs-layouts. 
-        // For simplicity, let's assume we use includes in the views or just standard layouts if configured.
-        // Since I didn't install express-ejs-layouts, I will use "partials" approach or simple includes.
-        // But wait, the main.ejs snippet used <%- body %>. That requires express-ejs-layouts.
-        // I should install express-ejs-layouts or change to includes.
-        // I'll install express-ejs-layouts for cleaner code.
+        filters
       });
     } catch (error) {
       console.error(error);
@@ -53,12 +46,13 @@ export class WebController {
     const providersRes = await pool.query('SELECT id, name FROM providers ORDER BY name');
     const selectedProviderId = req.query.providerId as string;
     
-    let keys: any[] = [];
+    let keys: Array<{ id: string; provider_name: string; key_prefix: string; name: string; is_active: boolean; created_at: Date }> = [];
     if (selectedProviderId) {
       keys = await ApiKeyService.listKeys(selectedProviderId);
     }
 
     res.render('keys', { 
+      currentPage: 'keys',
       providers: providersRes.rows,
       selectedProviderId,
       keys
@@ -71,6 +65,7 @@ export class WebController {
       const stats = await AnalyticsService.getAnalytics(days);
 
       res.render('analytics', {
+        currentPage: 'analytics',
         selectedDays: days,
         ...stats
       });

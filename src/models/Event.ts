@@ -9,6 +9,7 @@ export interface NormalizedEvent {
   message_type?: string;
   message_body?: string;
   platform?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   raw_payload: any;
 }
 

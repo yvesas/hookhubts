@@ -28,6 +28,7 @@ export class WebhookController {
       }
 
       return res.status(201).json({ status: 'success', id: result.id });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error('Ingest Error:', error);
       // Determine if it is a normalization error (Bad Request) or Server Error

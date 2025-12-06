@@ -1,122 +1,186 @@
-<%- include('partials/header') %>
+<%- include('partials/header', { currentPage }) %>
 
-<h1 class="text-3xl font-bold mb-6">API Key Management</h1>
+<div class="flex justify-between items-center mb-6">
+  <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">API Keys</h2>
+  <button onclick="showCreateModal()" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+    + Create API Key
+  </button>
+</div>
 
-<!-- ... existing content ... -->
-<div class="card bg-base-100 shadow-xl mb-6">
-  <div class="card-body">
-    <h2 class="card-title">Select Provider</h2>
-    <form class="flex gap-4 items-end" method="GET" action="/keys">
-      <div class="form-control w-full max-w-xs">
-        <label class="label"><span class="label-text">Provider</span></label>
-        <select name="providerId" class="select select-bordered" onchange="this.form.submit()">
-          <option value="" disabled <%= !selectedProviderId ? 'selected' : '' %>>Select a provider</option>
-          <% providers.forEach(p => { %>
-            <option value="<%= p.id %>" <%= selectedProviderId === p.id ? 'selected' : '' %>><%= p.name %></option>
-          <% }) %>
-        </select>
+<!-- API Keys List -->
+<div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md transition-colors duration-200">
+  <% if (!selectedProviderId) { %>
+    <div class="text-center py-12">
+      <p class="text-gray-500 dark:text-gray-400 mb-4">Select a provider to view API keys</p>
+      <button onclick="showCreateModal()" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+        Create your first API key
+      </button>
+    </div>
+  <% } else if (keys.length === 0) { %>
+    <div class="text-center py-12">
+      <p class="text-gray-500 dark:text-gray-400">No API keys found for this provider</p>
+    </div>
+  <% } else { %>
+    <ul role="list" class="divide-y divide-gray-200 dark:divide-gray-700">
+      <% keys.forEach(key => { %>
+        <li class="px-4 py-4 sm:px-6">
+          <div class="flex items-center justify-between">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center space-x-3">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200">
+                  <%= key.provider_name %>
+                </span>
+                <% if (key.is_active) { %>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">Active</span>
+                <% } else { %>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200">Revoked</span>
+                <% } %>
+              </div>
+              <div class="mt-2">
+                <p class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= key.name || 'Unnamed Key' %></p>
+                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400 font-mono"><%= key.key_prefix %></p>
+              </div>
+              <div class="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400">
+                <span>Created: <%= new Date(key.created_at).toLocaleString() %></span>
+              </div>
+            </div>
+            <div>
+              <% if (key.is_active) { %>
+                <button onclick="revokeKey('<%= key.id %>', '<%= key.name %>')" class="inline-flex items-center px-3 py-2 border border-red-300 shadow-sm text-sm leading-4 font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                  Revoke
+                </button>
+              <% } %>
+            </div>
+          </div>
+        </li>
+      <% }) %>
+    </ul>
+  <% } %>
+</div>
+
+<!-- Create API Key Modal -->
+<div id="createModal" class="hidden fixed z-10 inset-0 overflow-y-auto">
+  <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="hideCreateModal()"></div>
+
+    <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+      <div>
+        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100 mb-4">Create New API Key</h3>
+        <form id="createForm" onsubmit="createKey(event)">
+          <div class="mb-4">
+            <label for="provider_id" class="block text-sm font-medium text-gray-900 dark:text-gray-200">Provider</label>
+            <select id="provider_id" name="provider_id" required class="mt-1 block w-full pl-3 pr-10 py-2 text-base text-gray-900 dark:text-gray-200 border-gray-300 dark:border-gray-600 dark:bg-gray-700 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+              <option value="">Select a provider</option>
+              <% providers.forEach(p => { %>
+                <option value="<%= p.id %>"><%= p.name %></option>
+              <% }) %>
+            </select>
+          </div>
+
+          <div class="mb-4">
+            <label for="key_name" class="block text-sm font-medium text-gray-900 dark:text-gray-200">Key Name (optional)</label>
+            <input type="text" id="key_name" name="name" placeholder="e.g., Production Key" class="mt-1 block w-full text-gray-900 dark:text-gray-200 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:placeholder-gray-400 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+          </div>
+
+          <div class="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
+            <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:col-start-2 sm:text-sm">Create</button>
+            <button type="button" onclick="hideCreateModal()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:col-start-1 sm:text-sm">Cancel</button>
+          </div>
+        </form>
       </div>
-      <button type="submit" class="btn btn-primary">Load Keys</button>
-    </form>
+    </div>
   </div>
 </div>
 
-<% if (selectedProviderId) { %>
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <!-- List Keys -->
-    <div class="card bg-base-100 shadow-xl">
-      <div class="card-body">
-        <h2 class="card-title">Existing Keys</h2>
-        <div class="overflow-x-auto">
-          <table class="table w-full">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Prefix</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% keys.forEach(key => { %>
-                <tr class="<%= !key.is_active ? 'opacity-50' : '' %>">
-                  <td><%= key.name || 'Set Name' %></td>
-                  <td><%= key.key_prefix %></td>
-                  <td>
-                    <% if (key.is_active) { %>
-                      <div class="badge badge-success">Active</div>
-                    <% } else { %>
-                      <div class="badge badge-error">Revoked</div>
-                    <% } %>
-                  </td>
-                  <td><%= new Date(key.created_at).toLocaleDateString() %></td>
-                  <td>
-                    <% if (key.is_active) { %>
-                      <button onclick="revokeKey('<%= key.id %>')" class="btn btn-xs btn-error">Revoke</button>
-                    <% } %>
-                  </td>
-                </tr>
-              <% }) %>
-              <% if (keys.length === 0) { %>
-                <tr><td colspan="5" class="text-center">No keys found</td></tr>
-              <% } %>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+<!-- Success Modal -->
+<div id="successModal" class="hidden fixed z-10 inset-0 overflow-y-auto">
+  <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
 
-    <!-- Create Key -->
-    <div class="card bg-base-100 shadow-xl h-fit">
-      <div class="card-body">
-        <h2 class="card-title">Create New Key</h2>
-        <div id="newKeyAlert" class="alert alert-success shadow-lg hidden">
-          <div>
-            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            <div>
-              <h3 class="font-bold">Key Created!</h3>
-              <div class="text-xs">Save this secret: <span id="newKeySecret" class="font-mono bg-base-200 p-1"></span></div>
+    <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+      <div>
+        <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+          <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <div class="mt-3 text-center sm:mt-5">
+          <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">API Key Created Successfully!</h3>
+          <div class="mt-4">
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Save this key now. You won't be able to see it again!</p>
+            <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-md">
+              <code id="newApiKey" class="text-sm font-mono break-all text-gray-900 dark:text-gray-100"></code>
             </div>
+            <button onclick="copyApiKey()" class="mt-3 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Copy to Clipboard</button>
           </div>
         </div>
-
-        <div class="form-control">
-          <label class="label"><span class="label-text">Key Name</span></label>
-          <input type="text" id="newKeyName" class="input input-bordered" placeholder="e.g. Production Server" />
-        </div>
-        <div class="card-actions justify-end mt-4">
-          <button onclick="createKey()" class="btn btn-primary">Generate Key</button>
-        </div>
+      </div>
+      <div class="mt-5 sm:mt-6">
+        <button type="button" onclick="window.location.reload()" class="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm">Done</button>
       </div>
     </div>
   </div>
+</div>
 
-  <script>
-    async function revokeKey(id) {
-      if(!confirm('Are you sure?')) return;
-      await fetch('/api/keys/' + id, { method: 'DELETE' });
-      window.location.reload();
-    }
+<script>
+  function showCreateModal() {
+    document.getElementById('createModal').classList.remove('hidden');
+  }
 
-    async function createKey() {
-      const name = document.getElementById('newKeyName').value;
-      const providerId = '<%= selectedProviderId %>';
-      const res = await fetch('/api/keys', {
+  function hideCreateModal() {
+    document.getElementById('createModal').classList.add('hidden');
+  }
+
+  async function createKey(event) {
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch('/api/keys', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ providerId, name })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          providerId: formData.get('provider_id'),
+          name: formData.get('name') || 'API Key'
+        })
       });
-      const data = await res.json();
-      if(res.ok) {
-        document.getElementById('newKeySecret').innerText = data.secret;
-        document.getElementById('newKeyAlert').classList.remove('hidden');
-        // Optionally reload after delay
+
+      const data = await response.json();
+
+      if (response.ok) {
+        document.getElementById('newApiKey').textContent = data.secret;
+        hideCreateModal();
+        document.getElementById('successModal').classList.remove('hidden');
       } else {
-        alert('Error: ' + data.error);
+        alert('Error creating API key: ' + (data.error || 'Unknown error'));
       }
+    } catch (error) {
+      alert('Error creating API key: ' + error.message);
     }
-  </script>
-<% } %>
+  }
+
+  async function revokeKey(id, name) {
+    if (!confirm(`Are you sure you want to revoke "${name}"?`)) return;
+
+    try {
+      const response = await fetch(`/api/keys/${id}`, { method: 'DELETE' });
+      if (response.ok) {
+        window.location.reload();
+      } else {
+        alert('Error revoking API key');
+      }
+    } catch (error) {
+      alert('Error revoking API key: ' + error.message);
+    }
+  }
+
+  function copyApiKey() {
+    const key = document.getElementById('newApiKey').textContent;
+    navigator.clipboard.writeText(key).then(() => {
+      alert('API key copied to clipboard!');
+    });
+  }
+</script>
 
 <%- include('partials/footer') %>

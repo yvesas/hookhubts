@@ -1,6 +1,7 @@
 import { NormalizedEvent } from '../models/Event';
 
 interface WebhookPayload {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
 
@@ -16,6 +17,7 @@ export class NormalizerService {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private static parseMessageFlow(payload: any): NormalizedEvent {
     // Hypothetical structure for MessageFlow
     // { id: 'evt_123', type: 'incoming_message', created_at: 'iso_date', data: { from: 'u1', text: 'hello' } }
@@ -30,6 +32,7 @@ export class NormalizerService {
     };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private static parseChatRelay(payload: any): NormalizedEvent {
     // Hypothetical structure for ChatRelay
     // { messageId: 'msg-abc', messageType: 'text', timestamp: 1234567890, sender: { id: 'u2' }, content: 'hi' }

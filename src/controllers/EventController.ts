@@ -9,10 +9,10 @@ export class EventController {
       const offset = (page - 1) * limit;
 
       const filters = {
-        providerId: req.query.providerId,
-        eventType: req.query.eventType,
-        startDate: req.query.startDate,
-        endDate: req.query.endDate
+        providerId: req.query.providerId as string | undefined,
+        eventType: req.query.eventType as string | undefined,
+        startDate: req.query.startDate as string | undefined,
+        endDate: req.query.endDate as string | undefined
       };
 
       const result = await EventService.getEvents(filters, { limit, offset });

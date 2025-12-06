@@ -33,8 +33,9 @@ export class EventService {
 
       const result = await client.query(query, values);
       return result.rows[0];
-    } catch (error: any) {
-      if (error.code === '23505') {
+    } catch (error: unknown) {
+      const err = error as { code?: string };
+      if (err.code === '23505') {
         // Unique violation (idempotency)
         console.warn(`Duplicate event ignored: ${event.external_event_id} for provider ${providerId}`);
         return null; // Treated as success (idempotent)
@@ -45,12 +46,12 @@ export class EventService {
       client.release();
     }
   }
-  static async getEvents(filters: any, pagination: { limit: number; offset: number }) {
+  static async getEvents(filters: { providerId?: string; eventType?: string; startDate?: string; endDate?: string }, pagination: { limit: number; offset: number }) {
     const { providerId, eventType, startDate, endDate } = filters;
     const { limit, offset } = pagination;
     
     const conditions: string[] = [];
-    const values: any[] = [];
+    const values: (string | number)[] = [];
     let paramIndex = 1;
 
     if (providerId) {

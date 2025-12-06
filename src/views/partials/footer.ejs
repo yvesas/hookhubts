@@ -1,9 +1,26 @@
-  </main>
+    </div>
+  </div>
 
-  <footer class="footer footer-center p-4 bg-base-300 text-base-content">
-    <aside>
-      <p>Copyright © 2025 - HookHubTS</p>
-    </aside>
-  </footer>
+  <script>
+    // Dark mode toggle
+    function toggleTheme() {
+      const html = document.documentElement;
+      if (html.classList.contains('dark')) {
+        html.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+      } else {
+        html.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+      }
+    }
+
+    // Initialize theme on page load
+    (function() {
+      const theme = localStorage.getItem('theme');
+      if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
 </body>
 </html>
