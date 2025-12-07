@@ -19,10 +19,8 @@ export class ApiKeyController {
   static async list(req: Request, res: Response) {
     try {
       const { providerId } = req.query;
-      if (!providerId) {
-        return res.status(400).json({ error: 'providerId is required' });
-      }
-      const result = await ApiKeyService.listKeys(providerId as string);
+      // providerId is optional now
+      const result = await ApiKeyService.listKeys(providerId as string | undefined);
       res.json(result);
     } catch (error) {
       console.error(error);
