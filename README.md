@@ -114,6 +114,7 @@ docker compose up -d
 | `npm run start` | Inicia build de produção |
 | `npm run migrate` | Executa migrations |
 | `npm run seed` | Popula banco com dados iniciais |
+| `npm run simulate` | Gera tráfego de webhooks simulado |
 | `npm test` | Executa testes |
 
 ## 🏗️ Arquitetura
@@ -306,6 +307,24 @@ npm test
 ```
 
 **Veja guia completo em:** [TESTING.md](TESTING.md)
+
+## 🚦 Simulação de Tráfego
+
+Para validar o funcionamento do sistema com tráfego realista, incluímos um script de simulação que:
+1. Gera chaves de API temporárias ("Simulation Key") para cada provedor.
+2. Envia webhooks contínuos (MessageFlow e ChatRelay) para `http://localhost:3000`.
+3. Exibe o status de cada requisição em tempo real.
+
+### Executando a Simulação
+
+Certifique-se de que a aplicação está rodando (via Docker ou `npm run dev`) e execute:
+
+```bash
+# Executa a simulação via ts-node
+npx ts-node scripts/simulate_traffic.ts
+```
+
+*Para parar a simulação, pressione `Ctrl+C`.*
 
 ## 📚 Documentação
 

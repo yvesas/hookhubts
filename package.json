@@ -13,7 +13,8 @@
     "seed": "ts-node scripts/seed.ts",
     "build:css": "./node_modules/.bin/tailwindcss -i ./src/public/css/input.css -o ./src/public/css/styles.css",
     "watch:css": "./node_modules/.bin/tailwindcss -i ./src/public/css/input.css -o ./src/public/css/styles.css --watch",
-    "test": "jest"
+    "test": "jest",
+    "simulate": "ts-node scripts/simulate_traffic.ts"
   },
   "keywords": [],
   "author": "",
